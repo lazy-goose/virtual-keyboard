@@ -1,3 +1,5 @@
+import keys from './keys.js'
+
 export default class Keyboard {
   CLASSES = {
     KEYBOARD: 'keyboard',
@@ -6,6 +8,7 @@ export default class Keyboard {
     KEY: 'key',
     KEY_MOD_PRESSED: 'key_pressed',
     KEY_MOD_INDICATOR: 'key_indicator',
+    KEY_MOD_INDICATOR_ON: 'key_indicator_on',
     KEY_MOD_DARK: 'key_inverse',
     KEY_SYM: 'key__sym',
     KEYSIZE: (s = 1) => `key_size_${s}w`,
@@ -23,7 +26,10 @@ export default class Keyboard {
     capsLock: false,
     language: 'en',
     shift: false,
-    pressed: [],
+    ctrl: false,
+    alt: false,
+    cursor: 0,
+    pressed: new Set(),
   }
 
   events = {
@@ -31,11 +37,32 @@ export default class Keyboard {
   }
 
   constructor(textarea) {
+    let savedState
+    try {
+      savedState = JSON.parse(localStorage.getItem(Keyboard.LOCALSTORAGE_STATE))
+    } catch (e) {
+      savedState = null
+    }
+
+    if (savedState) {
+      this.state = {
+        ...savedState,
+        pressed: new Set(),
+      }
+    }
+
     this.bindInput(textarea)
   }
 
   bindInput(textarea) {
     this.elements.textarea = textarea
+    this.elements.textarea.value = this.state.value
+    this.elements.textarea.addEventListener('keypress', (e) => {
+      e.preventDefault()
+    })
+    this.elements.textarea.addEventListener('focusout', () => {
+      this.state.cursor = textarea.selectionEnd
+    })
   }
 
   fragment() {
@@ -48,83 +75,69 @@ export default class Keyboard {
     return this.elements.keyboard
   }
 
+  saveState() {
+    localStorage.setItem(
+      Keyboard.LOCALSTORAGE_STATE,
+      JSON.stringify(this.state)
+    )
+  }
+
+  deriveSymbol(key) {
+    let output = ''
+    if (key.sym.material) {
+      output = key.sym.material
+    } else if (typeof key.sym === 'string') {
+      output = key.sym
+    } else if (Array.isArray(key.sym)) {
+      if (this.state.shift && key.sym.at(1)) {
+        output = key.sym.at(1)
+      } else {
+        output = key.sym.at(0)
+      }
+    } else if (this.state.language) {
+      const lang = key.sym[this.state.language]
+      if (key.code.startsWith('Key')) {
+        const isUpperCase = (this.state.capsLock + this.state.shift) % 2
+        output = lang[isUpperCase]
+      } else {
+        output = lang[Number(this.state.shift)]
+      }
+    } else {
+      output = key.code
+    }
+    return output
+  }
+
+  update() {
+    keys.flat().forEach((key) => {
+      const node = key.element.firstChild
+      if (key.sym.material) {
+        node.textContent = key.sym.material
+        node.classList.add(this.CLASSES.MATERIAL_ICON)
+      } else if (typeof key.sym === 'string') {
+        node.textContent = key.sym
+      } else if (Array.isArray(key.sym)) {
+        if (this.state.shift && key.sym.at(1)) {
+          node.textContent = key.sym.at(1)
+        } else {
+          node.textContent = key.sym.at(0)
+        }
+      } else if (this.state.language) {
+        const lang = key.sym[this.state.language]
+        if (key.code.startsWith('Key')) {
+          const isUpperCase = (this.state.capsLock + this.state.shift) % 2
+          node.textContent = lang[isUpperCase]
+        } else {
+          node.textContent = lang[Number(this.state.shift)]
+        }
+      } else {
+        node.textContent = key.code
+      }
+    })
+  }
+
   createKeys() {
     const fragment = document.createDocumentFragment()
-
-    // prettier-ignore
-    const keys = [
-      [
-        { code: 'Backquote', sym: { en: ['`', '~'], ru: ['ё', 'Ё'] }, element: null },
-        { code: 'Digit1',    sym: { en: ['1', '!'], ru: ['1', '!'] }, element: null },
-        { code: 'Digit2',    sym: { en: ['2', '@'], ru: ['2', '"'] }, element: null },
-        { code: 'Digit3',    sym: { en: ['3', '#'], ru: ['3', '№'] }, element: null },
-        { code: 'Digit4',    sym: { en: ['4', '$'], ru: ['4', ';'] }, element: null },
-        { code: 'Digit5',    sym: { en: ['5', '%'], ru: ['5', '%'] }, element: null },
-        { code: 'Digit6',    sym: { en: ['6', '^'], ru: ['6', ':'] }, element: null },
-        { code: 'Digit7',    sym: { en: ['7', '&'], ru: ['7', '?'] }, element: null },
-        { code: 'Digit8',    sym: { en: ['8', '*'], ru: ['8', '*'] }, element: null },
-        { code: 'Digit9',    sym: { en: ['9', '('], ru: ['9', '('] }, element: null },
-        { code: 'Digit0',    sym: { en: ['0', ')'], ru: ['0', ')'] }, element: null },
-        { code: 'Minus',     sym: { en: ['-', ')'], ru: ['-', '_'] }, element: null },
-        { code: 'Equal',     sym: { en: ['=', ')'], ru: ['=', '+'] }, element: null },
-        { code: 'Backspace', sym: { material: 'backspace' },          element: null, view: { size: 2 } },
-      ],
-      [
-        { code: 'Tab',          sym: { material: 'keyboard_tab' },       element: null, view: { size: 2 } },
-        { code: 'KeyQ',         sym: { en: ['q', 'Q'], ru: ['й', 'Й'] }, element: null },
-        { code: 'KeyW',         sym: { en: ['w', 'Q'], ru: ['ц', 'Ц'] }, element: null },
-        { code: 'KeyE',         sym: { en: ['e', 'Q'], ru: ['у', 'У'] }, element: null },
-        { code: 'KeyR',         sym: { en: ['r', 'Q'], ru: ['к', 'К'] }, element: null },
-        { code: 'KeyT',         sym: { en: ['t', 'Q'], ru: ['е', 'Е'] }, element: null },
-        { code: 'KeyY',         sym: { en: ['y', 'Q'], ru: ['н', 'Н'] }, element: null },
-        { code: 'KeyU',         sym: { en: ['u', 'Q'], ru: ['г', 'Г'] }, element: null },
-        { code: 'KeyI',         sym: { en: ['i', 'Q'], ru: ['ш', 'Ш'] }, element: null },
-        { code: 'KeyO',         sym: { en: ['o', 'Q'], ru: ['щ', 'Щ'] }, element: null },
-        { code: 'KeyP',         sym: { en: ['p', 'Q'], ru: ['з', 'З'] }, element: null },
-        { code: 'BracketLeft',  sym: { en: ['[', '{'], ru: ['х', 'Х'] }, element: null },
-        { code: 'BracketRight', sym: { en: [']', '}'], ru: ['ъ', 'Ъ'] }, element: null },
-      ],
-      [
-        { code: 'CapsLock',  sym: { material: 'keyboard_capslock' },   element: null, view: { size: 2 } },
-        { code: 'KeyA',      sym: { en: ['a', 'A'], ru: ['ф', 'Ф'] },  element: null },
-        { code: 'KeyS',      sym: { en: ['s', 'S'], ru: ['ы', 'Ы'] },  element: null },
-        { code: 'KeyD',      sym: { en: ['d', 'D'], ru: ['в', 'В'] },  element: null },
-        { code: 'KeyF',      sym: { en: ['f', 'F'], ru: ['а', 'А'] },  element: null },
-        { code: 'KeyG',      sym: { en: ['g', 'G'], ru: ['п', 'П'] },  element: null },
-        { code: 'KeyH',      sym: { en: ['h', 'H'], ru: ['р', 'Р'] },  element: null },
-        { code: 'KeyJ',      sym: { en: ['j', 'J'], ru: ['о', 'О'] },  element: null },
-        { code: 'KeyK',      sym: { en: ['k', 'K'], ru: ['л', 'Л'] },  element: null },
-        { code: 'KeyL',      sym: { en: ['l', 'L'], ru: ['д', 'Д'] },  element: null },
-        { code: 'Semicolon', sym: { en: [';', ':'], ru: ['ж', 'Ж'] },  element: null },
-        { code: 'Quote',     sym: { en: ['\'', '"'], ru: ['э', 'Э'] }, element: null },
-        { code: 'Enter',     sym: { material: 'keyboard_return' },     element: null, view: { size: 2 } },
-      ],
-      [
-        { code: 'ShiftLeft',  sym: { material: 'shift' },              element: null, view: { size: 2 } },
-        { code: 'KeyZ',       sym: { en: ['z', 'Z'], ru: ['я', 'Я'] }, element: null },
-        { code: 'KeyX',       sym: { en: ['x', 'X'], ru: ['ч', 'Ч'] }, element: null },
-        { code: 'KeyC',       sym: { en: ['c', 'C'], ru: ['с', 'С'] }, element: null },
-        { code: 'KeyV',       sym: { en: ['v', 'V'], ru: ['м', 'М'] }, element: null },
-        { code: 'KeyB',       sym: { en: ['b', 'B'], ru: ['и', 'И'] }, element: null },
-        { code: 'KeyN',       sym: { en: ['n', 'N'], ru: ['т', 'Т'] }, element: null },
-        { code: 'KeyM',       sym: { en: ['m', 'M'], ru: ['ь', 'Ь'] }, element: null },
-        { code: 'Comma',      sym: { en: [',', '<'], ru: ['б', 'Б'] }, element: null },
-        { code: 'Period',     sym: { en: ['.', '>'], ru: ['ю', 'Ю'] }, element: null },
-        { code: 'Slash',      sym: { en: ['/', '?'], ru: ['.', ','] }, element: null },
-        { code: 'ShiftRight', sym: { material: 'shift' },              element: null, view: { size: 2 } },
-      ],
-      [
-        { code: 'ControlLeft',  sym: 'Ctrl',                          element: null },
-        { code: 'OSLeft',       sym: 'Win',                           element: null },
-        { code: 'AltLeft',      sym: 'Alt',                           element: null },
-        { code: 'Space',        sym: { material: 'space_bar' },       element: null, view: { size: 6 } },
-        { code: 'ArrowUp',      sym: { material: 'arrow_drop_up' },   element: null },
-        { code: 'ArrowLeft',    sym: { material: 'arrow_left' },      element: null },
-        { code: 'ArrowRight',   sym: { material: 'arrow_right' },     element: null },
-        { code: 'ArrowDown',    sym: { material: 'arrow_drop_down' }, element: null },
-        { code: 'ControlRight', sym: 'Ctrl',                          element: null },
-      ],
-    ]
 
     const isUppercase = () =>
       Boolean((this.state.capsLock + this.state.shift) % 2)
@@ -138,7 +151,14 @@ export default class Keyboard {
         const content = document.createElement('span')
         content.classList.add(this.CLASSES.KEY_SYM)
 
-        const uppercaseIndex = Number(isUppercase())
+        if (key.code === 'CapsLock') {
+          if (this.state.capsLock) {
+            button.classList.toggle(
+              this.CLASSES.KEY_MOD_INDICATOR_ON,
+              this.state.capsLock
+            )
+          }
+        }
 
         if (key.sym.material) {
           content.textContent = key.sym.material
@@ -146,11 +166,11 @@ export default class Keyboard {
         } else if (typeof key.sym === 'string') {
           content.textContent = key.sym
         } else if (Array.isArray(key.sym)) {
-          content.textContent = key.sym.at(uppercaseIndex)
+          content.textContent = key.sym.at(Number(isUppercase()))
         } else if (this.state.language === 'en') {
-          content.textContent = key.sym.en.at(uppercaseIndex)
+          content.textContent = key.sym.en.at(Number(isUppercase()))
         } else if (this.state.language === 'ru') {
-          content.textContent = key.sym.ru.at(uppercaseIndex)
+          content.textContent = key.sym.ru.at(Number(isUppercase()))
         } else {
           content.textContent = key.code
         }
@@ -183,104 +203,179 @@ export default class Keyboard {
 
     const findKey = (code) => keys.flat().find((el) => el.code === code)
 
-    document.addEventListener('keydown', (e) => {
-      const target = findKey(e.code)
-
+    const keydown = (target) => {
       if (target) {
         target.element.classList.add(this.CLASSES.KEY_MOD_PRESSED)
 
+        this.state.pressed.add(target.code)
+
         switch (target.code) {
-          case 'Backspace':
-            this.state.value = this.state.value.slice(0, -1)
-            break
-          case 'Tab': {
+          case 'Tab':
             this.state.value += '\t'
             break
-          }
-          case 'Enter': {
+          case 'CapsLock':
+            this.state.capsLock = !this.state.capsLock
+            if (this.state.capsLock) {
+              target.element.classList.add(this.CLASSES.KEY_MOD_INDICATOR_ON)
+            } else {
+              target.element.classList.remove(this.CLASSES.KEY_MOD_INDICATOR_ON)
+            }
+            this.update()
+            break
+          case 'ShiftLeft':
+          case 'ShiftRight':
+            this.state.shift = true
+            this.update()
+            break
+          case 'Enter':
             this.state.value += '\n'
             break
-          }
-          case 'ArrowUp': {
+          case 'ArrowUp':
             this.state.value += '↑'
             break
-          }
-          case 'ArrowRight': {
+          case 'ArrowRight':
             this.state.value += '→'
             break
-          }
-          case 'ArrowDown': {
+          case 'ArrowDown':
             this.state.value += '↓'
             break
-          }
-          case 'ArrowLeft': {
+          case 'ArrowLeft':
             this.state.value += '←'
             break
-          }
-          case 'Space': {
+          case 'Space':
             this.state.value += ' '
             break
-          }
-          default:
+          case 'OSLeft':
             break
-        }
-        this.triggerInput()
-      }
-    })
-
-    document.addEventListener('keyup', (e) => {
-      const target = findKey(e.code)
-      if (target) {
-        target.element.classList.remove(this.CLASSES.KEY_MOD_PRESSED)
-      }
-    })
-
-    document.addEventListener('keypress', (e) => {
-      const target = findKey(e.code)
-      const uppercaseIndex = Number(isUppercase())
-
-      e.preventDefault()
-
-      if (target) {
-        switch (target.code) {
-          case 'CapsLock': {
-            this.state.capsLock = !this.state.capsLock
+          case 'user_clear':
+            this.state.value = ''
+            break
+          case 'Backspace': {
+            const x = this.elements.textarea.selectionStart
+            this.state.value =
+              this.state.value.slice(0, x - 1) + this.state.value.slice(x)
+            this.state.cursor = Math.max(x - 1, 0)
             break
           }
-          case 'Backspace':
-          case 'ArrowUp':
-          case 'ArrowRight':
-          case 'ArrowDown':
-          case 'ArrowLeft':
-          case 'Enter':
-          case 'Space':
+          case 'Delete': {
+            const x = this.elements.textarea.selectionStart
+            this.state.value =
+              this.state.value.slice(0, x) + this.state.value.slice(x + 1)
+            this.state.cursor = x
             break
-
+          }
           default: {
-            if (target.sym.material) {
-              this.state.value += target.sym.material
-            } else if (Array.isArray(target.sym)) {
-              this.state.value += target.sym.at(uppercaseIndex)
-            } else if (this.state.language === 'en') {
-              this.state.value += target.sym.en.at(uppercaseIndex)
-            } else if (this.state.language === 'ru') {
-              this.state.value += target.sym.ru.at(uppercaseIndex)
+            if (
+              target.code === 'ControlLeft' ||
+              target.cpde === 'ControlRight'
+            ) {
+              this.state.ctrl = true
+            }
+            if (target.code === 'AltLeft' || target.cpde === 'AltRight') {
+              this.state.alt = true
+            }
+            const layoutKeys = [
+              'ControlLeft',
+              'ControlRight',
+              'AltLeft',
+              'AltRight',
+            ]
+            if (layoutKeys.includes(target.code)) {
+              const pressed = [...this.state.pressed.values()]
+              if (
+                this.state.pressed.size === 2 &&
+                !pressed.every((v) => v.startsWith('Control')) &&
+                !pressed.every((v) => v.startsWith('Alt')) &&
+                pressed.every((v) => layoutKeys.includes(v))
+              ) {
+                this.state.language = this.state.language === 'en' ? 'ru' : 'en'
+                this.update()
+              }
             } else {
-              this.state.value += target.code
+              this.state.value += this.deriveSymbol(target)
+              this.state.cursor += 1
             }
             break
           }
         }
-        this.triggerInput()
+        this.updateOutput()
+      }
+      this.elements.textarea.selectionStart = this.state.cursor
+      this.elements.textarea.selectionEnd = this.state.cursor
+      this.saveState()
+    }
+    const keyup = (target) => {
+      if (target) {
+        this.state.pressed.delete(target.code)
+        target.element.classList.remove(this.CLASSES.KEY_MOD_PRESSED)
+
+        if (
+          !this.state.pressed.has('ShiftLeft') &&
+          !this.state.pressed.has('ShiftRight')
+        ) {
+          this.state.shift = false
+        }
+
+        if (
+          !this.state.pressed.has('ShiftLeft') &&
+          !this.state.pressed.has('ShiftRight')
+        ) {
+          this.state.ctrl = false
+        }
+
+        if (
+          !this.state.pressed.has('AltLeft') &&
+          !this.state.pressed.has('AltRight')
+        ) {
+          this.state.alt = false
+        }
+
+        this.update()
+      }
+
+      this.saveState()
+    }
+
+    document.addEventListener('keydown', (e) => {
+      keydown(findKey(e.code))
+      e.preventDefault()
+    })
+    document.addEventListener('keyup', (e) => {
+      keyup(findKey(e.code))
+    })
+
+    let mousedownLast
+
+    this.elements.keyboard.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      keydown(findKey(e.target.dataset.keycode))
+      mousedownLast = e.target.dataset.keycode
+    })
+    document.addEventListener('mouseup', (e) => {
+      e.preventDefault()
+      keyup(findKey(mousedownLast))
+    })
+
+    window.addEventListener('mouseout', (e) => {
+      if (e.target === document.documentElement) {
+        keys.flat().forEach((key) => {
+          key.element.classList.remove(this.CLASSES.KEY_MOD_PRESSED)
+        })
       }
     })
 
-    this.elements.keyboard.addEventListener('click', (e) => {})
+    window.addEventListener('focusin', (e) => {
+      if (e.target === document.documentElement) {
+        keys.flat().forEach((key) => {
+          key.element.classList.remove(this.CLASSES.KEY_MOD_PRESSED)
+        })
+      }
+    })
 
     return fragment
   }
 
-  triggerInput() {
+  updateOutput() {
     this.elements.textarea.value = this.state.value
   }
 }
