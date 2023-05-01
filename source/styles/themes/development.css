@@ -17,12 +17,14 @@
 
 .heading {
   font-weight: normal;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  text-align: center;
 }
 
 .textarea {
   min-height: 20rem;
   font-family: inherit;
+  font-size: 1.5rem;
 }
 
 .help {
@@ -30,7 +32,7 @@
 }
 
 .keyboard {
-  padding: 3rem;
+  padding: 2rem;
   width: 80%;
   margin: 0 auto;
   border: var(--border-w) dashed var(--color-neutral-dark);
@@ -52,7 +54,7 @@
   padding: 1rem;
   width: var(--key-1w);
   height: 3rem;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   border: var(--border-w) dashed var(--color-neutral-dark);
   border-radius: 4px;
   background-color: transparent;
