@@ -23,6 +23,8 @@ export default class App {
     this.elements.heading.classList.add('heading')
     this.elements.textarea.classList.add('textarea')
 
+    this.elements.textarea.style.pointerEvents = 'none'
+
     this.elements.app.appendChild(this.elements.heading)
     this.elements.app.appendChild(this.elements.textarea)
     this.elements.app.appendChild(this.elements.keyboard)
