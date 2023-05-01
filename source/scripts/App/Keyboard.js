@@ -60,7 +60,7 @@ export default class Keyboard {
     this.elements.textarea.addEventListener('keypress', (e) => {
       e.preventDefault()
     })
-    this.elements.textarea.addEventListener('focusout', () => {
+    this.elements.textarea.addEventListener('click', () => {
       this.state.cursor = textarea.selectionEnd
     })
   }
@@ -254,7 +254,8 @@ export default class Keyboard {
           case 'Backspace': {
             const x = this.elements.textarea.selectionStart
             this.state.value =
-              this.state.value.slice(0, x - 1) + this.state.value.slice(x)
+              this.state.value.slice(0, Math.max(x - 1, 0)) +
+              this.state.value.slice(x)
             this.state.cursor = Math.max(x - 1, 0)
             break
           }
@@ -293,8 +294,13 @@ export default class Keyboard {
                 this.update()
               }
             } else {
-              this.state.value += this.deriveSymbol(target)
+              const x = this.state.cursor
+              this.state.value =
+                this.state.value.slice(0, x) +
+                this.deriveSymbol(target) +
+                this.state.value.substring(x)
               this.state.cursor += 1
+              console.log(this.state.cursor)
             }
             break
           }
