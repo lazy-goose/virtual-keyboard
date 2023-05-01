@@ -202,6 +202,13 @@ export default class Keyboard {
     })
 
     const findKey = (code) => keys.flat().find((el) => el.code === code)
+    const insert = (txt) => {
+      this.state.value =
+        this.state.value.slice(0, this.state.cursor) +
+        txt +
+        this.state.value.substring(this.state.cursor)
+      this.state.cursor += 1
+    }
 
     const keydown = (target) => {
       if (target) {
@@ -228,22 +235,29 @@ export default class Keyboard {
             this.update()
             break
           case 'Enter':
-            this.state.value += '\n'
+            insert('\n')
             break
           case 'ArrowUp':
-            this.state.value += '↑'
+            this.elements.textarea.focus()
+            this.state.cursor = 0
             break
           case 'ArrowRight':
-            this.state.value += '→'
+            this.elements.textarea.focus()
+            this.state.cursor = Math.min(
+              this.state.cursor + 1,
+              this.state.value.length
+            )
             break
           case 'ArrowDown':
-            this.state.value += '↓'
+            this.elements.textarea.focus()
+            this.state.cursor = this.state.value.length
             break
           case 'ArrowLeft':
-            this.state.value += '←'
+            this.elements.textarea.focus()
+            this.state.cursor = Math.max(this.state.cursor - 1, 0)
             break
           case 'Space':
-            this.state.value += ' '
+            insert(' ')
             break
           case 'MetaLeft':
           case 'OSLeft':
@@ -312,12 +326,7 @@ export default class Keyboard {
                 this.update()
               }
             } else {
-              const x = this.state.cursor
-              this.state.value =
-                this.state.value.slice(0, x) +
-                this.deriveSymbol(target) +
-                this.state.value.substring(x)
-              this.state.cursor += 1
+              insert(this.deriveSymbol(target))
             }
             break
           }
