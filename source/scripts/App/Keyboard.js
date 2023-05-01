@@ -253,6 +253,15 @@ export default class Keyboard {
             break
           case 'Backspace': {
             const x = this.elements.textarea.selectionStart
+            const y = this.elements.textarea.selectionEnd
+
+            if (x !== y) {
+              this.state.value =
+                this.state.value.slice(0, x) + this.state.value.slice(y)
+              this.state.cursor = x
+              break
+            }
+
             this.state.value =
               this.state.value.slice(0, Math.max(x - 1, 0)) +
               this.state.value.slice(x)
@@ -261,6 +270,15 @@ export default class Keyboard {
           }
           case 'Delete': {
             const x = this.elements.textarea.selectionStart
+            const y = this.elements.textarea.selectionEnd
+
+            if (x !== y) {
+              this.state.value =
+                this.state.value.slice(0, x) + this.state.value.slice(y)
+              this.state.cursor = x
+              break
+            }
+
             this.state.value =
               this.state.value.slice(0, x) + this.state.value.slice(x + 1)
             this.state.cursor = x
@@ -300,7 +318,6 @@ export default class Keyboard {
                 this.deriveSymbol(target) +
                 this.state.value.substring(x)
               this.state.cursor += 1
-              console.log(this.state.cursor)
             }
             break
           }
