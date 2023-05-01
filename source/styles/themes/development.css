@@ -1,0 +1,126 @@
+:root {
+  --color-neutral-light: hsla(0, 100%, 100%, 1);
+  --color-neutral-dark: hsla(0, 100%, 0%, 1);
+  --color-success: hsla(120, 100%, 40%, 1);
+  --border-w: 1px;
+  --key-1w: 5%;
+}
+
+.app {
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+  width: 75rem;
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--color-neutral-dark);
+}
+
+.heading {
+  font-weight: normal;
+  font-size: 2.5rem;
+  text-align: center;
+}
+
+.textarea {
+  min-height: 20rem;
+  font-family: inherit;
+  font-size: 1.5rem;
+}
+
+.help {
+  text-align: center;
+}
+
+.keyboard {
+  padding: 2rem;
+  width: 80%;
+  margin: 0 auto;
+  border: var(--border-w) dashed var(--color-neutral-dark);
+  border-radius: 0.5rem;
+}
+
+.keyboard__keys-container {
+  text-align: center;
+}
+
+.key {
+  margin: 0.6%;
+
+  box-sizing: border-box;
+  position: relative;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: top;
+  padding: 1rem;
+  width: var(--key-1w);
+  height: 3rem;
+  font-size: 1.25rem;
+  border: var(--border-w) dashed var(--color-neutral-dark);
+  border-radius: 4px;
+  background-color: transparent;
+  outline: transparent;
+  cursor: pointer;
+  transition-duration: 0.4s;
+  transition-property: background-color, color, border-radius;
+}
+
+.key_pressed,
+.key:active {
+  color: var(--color-neutral-light);
+  background-color: var(--color-neutral-dark);
+  border-radius: 0.7rem;
+}
+
+.key_inverse {
+  color: var(--color-neutral-light);
+  background-color: var(--color-neutral-dark);
+}
+
+.key_inverse.key_pressed,
+.key_inverse:active {
+  color: var(--color-neutral-dark);
+  background-color: var(--color-neutral-light);
+}
+
+.key_size_1w {
+  width: calc(1 * var(--key-1w));
+}
+.key_size_2w {
+  width: calc(2 * var(--key-1w));
+}
+.key_size_3w {
+  width: calc(3 * var(--key-1w));
+}
+.key_size_4w {
+  width: calc(4 * var(--key-1w));
+}
+.key_size_5w {
+  width: calc(5 * var(--key-1w));
+}
+.key_size_6w {
+  width: calc(6 * var(--key-1w));
+}
+
+.key_indicator::after {
+  content: '';
+  position: absolute;
+  top: calc(0.25rem + 2%);
+  right: calc(0.25rem + 2%);
+  width: 0.5rem;
+  height: 0.5rem;
+  border: var(--border-w) solid var(--color-neutral-dark);
+  background-color: var(--color-neutral-light);
+  border-radius: 50%;
+  transition: background-color, border-color;
+}
+
+.key_indicator_on::after {
+  background-color: var(--color-success);
+  border-color: transparent;
+}
+
+.key__sym,
+.key__sym[class*='material'] {
+  font-weight: inherit;
+  font-size: inherit;
+}
