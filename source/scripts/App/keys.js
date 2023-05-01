@@ -62,7 +62,7 @@ export default [
   ],
   [
     { code: 'ControlLeft',  sym: 'Ctrl',                          element: null },
-    { code: 'OSLeft',       sym: 'Win',                           element: null },
+    { code: window.chrome ? 'MetaLeft' : 'OSLeft', sym: 'Win',    element: null },
     { code: 'AltLeft',      sym: 'Alt',                           element: null },
     { code: 'Space',        sym: { material: 'space_bar' },       element: null, view: { size: 6 } },
     { code: 'ArrowUp',      sym: { material: 'arrow_drop_up' },   element: null },

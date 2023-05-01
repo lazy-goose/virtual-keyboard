@@ -245,6 +245,7 @@ export default class Keyboard {
           case 'Space':
             this.state.value += ' '
             break
+          case 'MetaLeft':
           case 'OSLeft':
             break
           case 'user_clear':
