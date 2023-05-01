@@ -16,18 +16,25 @@
 }
 
 .heading {
+  font-weight: normal;
   font-size: 2rem;
 }
 
 .textarea {
   min-height: 20rem;
   font-family: inherit;
-  outline: transparent;
+}
+
+.help {
+  text-align: center;
 }
 
 .keyboard {
-  width: 60rem;
+  padding: 3rem;
+  width: 80%;
   margin: 0 auto;
+  border: var(--border-w) dashed var(--color-neutral-dark);
+  border-radius: 0.5rem;
 }
 
 .keyboard__keys-container {
@@ -35,7 +42,7 @@
 }
 
 .key {
-  margin: 5px;
+  margin: 0.6%;
 
   box-sizing: border-box;
   position: relative;
@@ -100,6 +107,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border: var(--border-w) solid var(--color-neutral-dark);
+  background-color: var(--color-neutral-light);
   border-radius: 50%;
   transition: background-color, border-color;
 }
