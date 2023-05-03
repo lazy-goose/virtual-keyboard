@@ -218,7 +218,7 @@ export default class Keyboard {
 
         switch (target.code) {
           case 'Tab':
-            this.state.value += '\t'
+            insert('\t')
             break
           case 'CapsLock':
             this.state.capsLock = !this.state.capsLock
